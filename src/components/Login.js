@@ -1,21 +1,27 @@
 import React, { useRef, useState } from 'react';
 import Header from './Header';
 import { validateFormData } from '../utils/validate';
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { auth } from '../utils/firebase';
+import { useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import { addUser } from '../utils/userSlice';
 
 const Login = () => {
   const [isSignInForm, setIsSignInForm] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
   const email = useRef(null);
   const password = useRef(null);
   const confirmPassword = useRef(null); // for re-enter password
+  const name = useRef(null);
 
   const signUpFormHandler = () => {
     setIsSignInForm(!isSignInForm);
   };
 
-  const validateForm = (e) => {
+  const validateForm = async (e) => {
     e.preventDefault();
     const emailValue = email.current.value;
     const passwordValue = password.current.value;
@@ -25,33 +31,35 @@ const Login = () => {
     setErrorMessage(message);
     if (message) return;
 
-    if (!isSignInForm) {
-      if (passwordValue !== confirmPasswordValue) {
-        setErrorMessage('Passwords do not match.');
-        return;
-      }
+    try {
+      if (!isSignInForm) {
+        if (passwordValue !== confirmPasswordValue) {
+          setErrorMessage('Passwords do not match.');
+          return;
+        }
 
-      createUserWithEmailAndPassword(auth, emailValue, passwordValue)
-        .then((userCredential) => {
-          const user = userCredential.user;
-          console.log('Signed up user:', user);
-        })
-        .catch((error) => {
-          const errorCode = error.code;
-          const errorMessage = error.message;
-          setErrorMessage(`Error: ${errorMessage} (Code: ${errorCode})`);
+        const userCredential = await createUserWithEmailAndPassword(auth, emailValue, passwordValue);
+        const user = userCredential.user;
+        console.log('Signed up user:', user);
+        navigate('/browse');
+      } else {
+        const userCredential = await signInWithEmailAndPassword(auth, emailValue, passwordValue);
+        const user = userCredential.user;
+        await updateProfile(user, {
+          displayName: name.current.value,
+          photoURL: 'https://github.com/account',
         });
-    } else {
-      signInWithEmailAndPassword(auth, emailValue, passwordValue)
-        .then((userCredential) => {
-          const user = userCredential.user;
-          console.log('Signed in user:', user);
-        })
-        .catch((error) => {
-          const errorCode = error.code;
-          const errorMessage = error.message;
-          setErrorMessage(`Error: ${errorMessage} (Code: ${errorCode})`);
-        });
+
+        const { uid, email, displayName, photoURL } = auth.currentUser;
+        dispatch(addUser({ uid, email, displayName, photoURL }));
+
+        console.log('Signed in user:', user);
+        navigate('/browse');
+      }
+    } catch (error) {
+      const errorCode = error.code;
+      const errorMessage = error.message;
+      setErrorMessage(`Error: ${errorMessage} (Code: ${errorCode})`);
     }
   };
 
@@ -73,6 +81,7 @@ const Login = () => {
         </h1>
         {!isSignInForm && (
           <input
+            ref={name}
             type='text'
             placeholder='Full Name'
             className='bg-gray-700 my-4 p-4 w-full rounded-lg'
