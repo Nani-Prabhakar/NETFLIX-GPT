@@ -1,12 +1,15 @@
 import React, { useRef, useState } from 'react';
 import Header from './Header';
 import { validateFormData } from '../utils/validate';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from '../utils/firebase';
 
 const Login = () => {
   const [isSignInForm, setIsSignInForm] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
   const email = useRef(null);
   const password = useRef(null);
+  const confirmPassword = useRef(null); // for re-enter password
 
   const signUpFormHandler = () => {
     setIsSignInForm(!isSignInForm);
@@ -14,9 +17,42 @@ const Login = () => {
 
   const validateForm = (e) => {
     e.preventDefault();
-    //console.log(email.current.value)
-    const message = validateFormData(email.current.value, password.current.value);
+    const emailValue = email.current.value;
+    const passwordValue = password.current.value;
+    const confirmPasswordValue = confirmPassword.current ? confirmPassword.current.value : null;
+
+    const message = validateFormData(emailValue, passwordValue);
     setErrorMessage(message);
+    if (message) return;
+
+    if (!isSignInForm) {
+      if (passwordValue !== confirmPasswordValue) {
+        setErrorMessage('Passwords do not match.');
+        return;
+      }
+
+      createUserWithEmailAndPassword(auth, emailValue, passwordValue)
+        .then((userCredential) => {
+          const user = userCredential.user;
+          console.log('Signed up user:', user);
+        })
+        .catch((error) => {
+          const errorCode = error.code;
+          const errorMessage = error.message;
+          setErrorMessage(`Error: ${errorMessage} (Code: ${errorCode})`);
+        });
+    } else {
+      signInWithEmailAndPassword(auth, emailValue, passwordValue)
+        .then((userCredential) => {
+          const user = userCredential.user;
+          console.log('Signed in user:', user);
+        })
+        .catch((error) => {
+          const errorCode = error.code;
+          const errorMessage = error.message;
+          setErrorMessage(`Error: ${errorMessage} (Code: ${errorCode})`);
+        });
+    }
   };
 
   return (
@@ -56,12 +92,13 @@ const Login = () => {
         />
         {!isSignInForm && (
           <input
+            ref={confirmPassword}
             type='password'
             placeholder='Re-enter Password'
             className='bg-gray-700 my-4 p-4 w-full rounded-lg'
           />
         )}
-        <p className='p-2  text-red-500 text-lg font-bold'>
+        <p className='p-2 text-red-500 text-lg font-bold'>
           {errorMessage}
         </p>
         <button
@@ -70,7 +107,6 @@ const Login = () => {
         >
           {isSignInForm ? 'Sign In' : 'Sign Up'}
         </button>
-
         <p className='p-2 m-2 cursor-pointer' onClick={signUpFormHandler}>
           {isSignInForm ? 'New to NetFlix? Sign Up Now' : 'Already Registered? Sign In Now'}
         </p>
