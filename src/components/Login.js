@@ -1,7 +1,7 @@
 import React, { useRef, useState } from 'react';
 import Header from './Header';
 import { validateFormData } from '../utils/validate';
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { auth } from '../utils/firebase';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
@@ -14,52 +14,67 @@ const Login = () => {
   const navigate = useNavigate();
   const email = useRef(null);
   const password = useRef(null);
-  const confirmPassword = useRef(null); // for re-enter password
+  const confirmPassword = useRef(null); 
   const name = useRef(null);
 
   const signUpFormHandler = () => {
     setIsSignInForm(!isSignInForm);
   };
 
-  const validateForm = async (e) => {
+  const validateForm = (e) => {
     e.preventDefault();
     const emailValue = email.current.value;
     const passwordValue = password.current.value;
     const confirmPasswordValue = confirmPassword.current ? confirmPassword.current.value : null;
+    const nameValue = name.current ? name.current.value : '';
 
     const message = validateFormData(emailValue, passwordValue);
     setErrorMessage(message);
     if (message) return;
 
-    try {
-      if (!isSignInForm) {
-        if (passwordValue !== confirmPasswordValue) {
-          setErrorMessage('Passwords do not match.');
-          return;
-        }
-
-        const userCredential = await createUserWithEmailAndPassword(auth, emailValue, passwordValue);
-        const user = userCredential.user;
-        console.log('Signed up user:', user);
-        navigate('/browse');
-      } else {
-        const userCredential = await signInWithEmailAndPassword(auth, emailValue, passwordValue);
-        const user = userCredential.user;
-        await updateProfile(user, {
-          displayName: name.current.value,
-          photoURL: 'https://github.com/account',
-        });
-
-        const { uid, email, displayName, photoURL } = auth.currentUser;
-        dispatch(addUser({ uid, email, displayName, photoURL }));
-
-        console.log('Signed in user:', user);
-        navigate('/browse');
+    if (!isSignInForm) {
+      if (passwordValue !== confirmPasswordValue) {
+        setErrorMessage('Passwords do not match.');
+        return;
       }
-    } catch (error) {
-      const errorCode = error.code;
-      const errorMessage = error.message;
-      setErrorMessage(`Error: ${errorMessage} (Code: ${errorCode})`);
+
+      createUserWithEmailAndPassword(auth, emailValue, passwordValue)
+        .then((userCredential) => {
+          const user = userCredential.user;
+          console.log('Signed up user:', user);
+          
+        })
+        .catch((error) => {
+          const errorCode = error.code;
+          const errorMessage = error.message;
+          setErrorMessage(`Error: ${errorMessage} (Code: ${errorCode})`);
+        });
+    } else {
+      signInWithEmailAndPassword(auth, emailValue, passwordValue)
+        .then((userCredential) => {
+          const user = userCredential.user;
+          console.log('User:', user);
+
+          updateProfile(user, {
+            displayName: nameValue,
+            photoURL: "https://avatars.githubusercontent.com/u/115064749?v=4"
+          })
+          .then(() => {
+            console.log('Profile updated!');
+            const { uid, email, displayName, photoURL } = auth.currentUser;
+            dispatch(addUser({ uid, email, displayName, photoURL }));
+            navigate("/browse");
+          })
+          .catch((error) => {
+            setErrorMessage(`Error updating profile: ${error.message}`);
+          });
+
+        })
+        .catch((error) => {
+          const errorCode = error.code;
+          const errorMessage = error.message;
+          setErrorMessage(`Error: ${errorMessage} (Code: ${errorCode})`);
+        });
     }
   };
 
