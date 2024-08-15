@@ -7,11 +7,12 @@ const MainContainer = () => {
   if(!movies)return;
   const movie=movies[0];
   //console.log(movie)
-  const {original_title,overview}=movie;
+  const {original_title,overview,id}=movie;
   return (
     <div>
-      <VedioBackground/>
+      
       <VedioTitle title={original_title} overview={overview}/>
+      <VedioBackground movieID={id}/>
     </div>
   )
 }
