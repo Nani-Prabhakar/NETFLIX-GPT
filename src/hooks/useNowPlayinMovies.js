@@ -13,6 +13,7 @@ const useNowPlayinMovies = () => {
     useEffect(()=>{
       nowPlayingMovies()
   
+      
     },[])
    
 }

@@ -15,7 +15,7 @@ const useMovieTrailer=(movieID)=>{
           dispatch(addMovieTrailer(trailers[0]));
         }
       } catch (error) {
-        console.error("Error fetching movie videos:", error);
+        //console.error("Error fetching movie videos:", error);
       }
     };
   
