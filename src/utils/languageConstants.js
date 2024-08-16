@@ -25,7 +25,7 @@ const lang={
     },
     kannada:{
         search:"ಹುಡುಕು",
-        gptSearchPlaceHolder:""
+        gptSearchPlaceHolder:"ನೀವು ಇಂದು ಏನನ್ನು ವೀಕ್ಷಿಸಲು ಬಯಸುತ್ತೀರಿ?"
 
     }
 }
