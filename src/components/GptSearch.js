@@ -1,12 +1,12 @@
 import React from 'react'
-import GptSearchBar from '../components/GptSearchBar'
-import GptMovieSuggestions from '../components/GptMovieSuggestions'
-import { BG_URL } from './constants'
+import GptSearchBar from './GptSearchBar'
+import GptMovieSuggestions from './GptMovieSuggestions'
+import { BG_URL } from '../utils/constants'
 
 const GptSearch = () => {
   return (
-    <div className=''>
-        <div className='absolute -z-10'>
+    <div className=' '>
+        <div className='fixed -z-10'>
         <img
           src={BG_URL}
           alt='background'
