@@ -1,23 +1,26 @@
 import React, { useRef } from 'react';
 import lang from '../utils/languageConstants';
 import { useSelector } from 'react-redux';
-import client from '../utils/openai';
-
+import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GEMINIAI_KEY } from '../utils/constants';
 const GptSearchBar = () => {
   const language = useSelector(store => store.config.language);
-  console.log('Selected language:', language);
-
-  // Fallback to English if the language is not found
+  
   const selectedLang = lang[language] || lang.en;
 
   const searchText = useRef(null);
 
   const handleGptSearchClick = async () => {
-    const chatCompletion = await client.chat.completions.create({
-      messages: [{ role: 'user', content: "nani movies" }],
-      model: 'gpt-4o-mini',
-    });
-    console.log(chatCompletion.choices);
+    const genAI = new GoogleGenerativeAI(GEMINIAI_KEY);
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    
+    const prompt = "Act as a movie recommendation system and suggest some movies for the query"
+                  +searchText.current.value+
+                  "only give me names of five movies, comma separated like the example result given ahead.Example result:Goat,Bahubali,Devara,Eega,Nani";
+    
+    const result = await model.generateContent(prompt);
+    console.log(result.response.text());
+   
   };
 
   return (
