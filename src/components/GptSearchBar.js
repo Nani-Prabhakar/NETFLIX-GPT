@@ -2,8 +2,9 @@ import React, { useRef } from 'react';
 import lang from '../utils/languageConstants';
 import { useDispatch, useSelector } from 'react-redux';
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { API_OPTIONS, GEMINIAI_KEY } from '../utils/constants';
+import { API_OPTIONS,GEMINIAI_KEY} from '../utils/constants';
 import { addGeminiMovies } from '../utils/gptSlice';
+//const GEMINIAI_KEY=process.env.REACT_APP_GEMINIAI_KEY;
 const GptSearchBar = () => {
   const language = useSelector(store => store.config.language);
   const dispatch = useDispatch();

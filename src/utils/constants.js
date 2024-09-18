@@ -22,3 +22,4 @@ export const API_OPTIONS={
 
 
 ];
+export const GEMINIAI_KEY=process.env.REACT_APP_GEMINIAI_KEY;
